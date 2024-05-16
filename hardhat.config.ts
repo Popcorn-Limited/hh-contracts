@@ -3,6 +3,7 @@ import "hardhat-deploy";
 import type { HardhatUserConfig } from "hardhat/config";
 import { vars } from "hardhat/config";
 import type { NetworkUserConfig } from "hardhat/types";
+import '@openzeppelin/hardhat-upgrades';
 
 import "./tasks/accounts";
 import "./tasks/lock";
@@ -10,7 +11,7 @@ import "./tasks/lock";
 // Run 'npx hardhat vars setup' to see the list of variables that need to be set
 
 const mnemonic: string = vars.get("MNEMONIC");
-const infuraApiKey: string = vars.get("INFURA_API_KEY");
+const infuraApiKey: string = 'vars.get("INFURA_API_KEY")';
 
 const chainIds = {
   "arbitrum-mainnet": 42161,
@@ -23,6 +24,8 @@ const chainIds = {
   "polygon-mainnet": 137,
   "polygon-mumbai": 80001,
   sepolia: 11155111,
+  xlayer: 196,
+  "xlayer-testnet": 195
 };
 
 function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
@@ -34,9 +37,16 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org";
       break;
+    case "xlayer":
+      jsonRpcUrl = "https://rpc.xlayer.tech";
+      break;
+    case "xlayer-testnet":
+      jsonRpcUrl = "https://testrpc.xlayer.tech"
+      break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
   }
+
   return {
     accounts: {
       count: 10,
@@ -63,7 +73,28 @@ const config: HardhatUserConfig = {
       polygon: vars.get("POLYGONSCAN_API_KEY", ""),
       polygonMumbai: vars.get("POLYGONSCAN_API_KEY", ""),
       sepolia: vars.get("ETHERSCAN_API_KEY", ""),
+      xlayer: vars.get("OKX_API_KEY", ""),
+      "xlayer-testnet": vars.get("OKX_API_KEY", ""),
+
     },
+    customChains: [
+      {
+        network: "xlayer-testnet",
+        chainId: 195, //196 for mainnet
+        urls: {
+          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/XLAYER_TESTNET",
+          browserURL: "https://www.oklink.com/xlayer-test"
+        }
+      },
+      {
+        network: "xlayer",
+        chainId: 196,
+        urls: {
+          apiURL: "https://www.oklink.com/api/v5/explorer/contract/verify-source-code-plugin/XLAYER",
+          browserURL: "https://www.oklink.com/xlayer"
+        }
+      }
+    ]
   },
   gasReporter: {
     currency: "USD",
@@ -93,6 +124,8 @@ const config: HardhatUserConfig = {
     "polygon-mainnet": getChainConfig("polygon-mainnet"),
     "polygon-mumbai": getChainConfig("polygon-mumbai"),
     sepolia: getChainConfig("sepolia"),
+    xlayer: getChainConfig("xlayer"),
+    "xlayer-testnet": getChainConfig("xlayer-testnet")
   },
   paths: {
     artifacts: "./artifacts",
@@ -101,7 +134,7 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   solidity: {
-    version: "0.8.19",
+    version: "0.8.25",
     settings: {
       metadata: {
         // Not including the metadata hash
